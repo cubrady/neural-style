@@ -1,6 +1,7 @@
 # Copyright (c) 2015-2016 Anish Athalye. Released under GPLv3.
 
 import vgg
+import time
 
 import tensorflow as tf
 import numpy as np
@@ -111,10 +112,18 @@ def stylize(network, initial, content, styles, iterations,
         best = None
         with tf.Session() as sess:
             sess.run(tf.initialize_all_variables())
+
+            start_t = time.time()
+            print "Start running ..."
+            print "Iterations:%d" % iterations
+            
             for i in range(iterations):
+                t = time.time()
                 last_step = (i == iterations - 1)
                 print_progress(i, last=last_step)
                 train_step.run()
+
+
 
                 if (checkpoint_iterations and i % checkpoint_iterations == 0) or last_step:
                     this_loss = loss.eval()
@@ -125,6 +134,10 @@ def stylize(network, initial, content, styles, iterations,
                         (None if last_step else i),
                         vgg.unprocess(best.reshape(shape[1:]), mean_pixel)
                     )
+
+                print "Spend %d ms" % ((time.time() - t) * 1000)
+
+            print "Complete !! Spend %d ms" % ((time.time() - start_t) * 1000)
 
 
 def _tensor_size(tensor):
